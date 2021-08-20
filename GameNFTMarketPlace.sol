@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 struct Product
 {
-    IERC721         NFTToken;           // nft smart contract.
+    IERC721         NFTContract;           // nft smart contract.
     uint256         NFTId;              // nft id.
     uint256         price;              // price in game coin.
     bool            available;          // is product available to buy. (can be sold or removed).
@@ -33,26 +33,25 @@ contract GameNFTMarketPlace is ERC721Holder
 
     /**
      * @notice
-     *              NFTToken_                  - IERC721 contract address.
+     *              NFTContract_               - IERC721 contract address.
      *              NFTId_                     - ID of NFT within NFT contract.
      *              price_                     - price of NFT in ERC20 currency.
      */
-    function addProduct(IERC721 NFTToken_, uint256 NFTId_, uint256 price_) external
+    function addProduct(IERC721 NFTContract_, uint256 NFTId_, uint256 price_) external
     {
         // check owner of NFT.
-        require(NFTToken_.ownerOf(NFTId_) == msg.sender, "Permissions Error: not an owner of NFT.");
-        // TODO: check if transfer of token is possible. First thing is not enough! Add has transfer rights too to allow others to sell your product.
+        require(NFTContract_.ownerOf(NFTId_) == msg.sender, "Permissions Error: not an owner of NFT.");
 
         // store product
         uint256 productCount = _vendorProductCount[msg.sender];
-        _vendors[msg.sender][productCount].NFTToken     = NFTToken_;
+        _vendors[msg.sender][productCount].NFTContract     = NFTContract_;
         _vendors[msg.sender][productCount].NFTId        = NFTId_;
         _vendors[msg.sender][productCount].price        = price_;
         _vendors[msg.sender][productCount].available    = false;
         _vendorProductCount[msg.sender]++;
 
         // transfer NFT to this contract.
-        NFTToken_.safeTransferFrom(msg.sender, address(this), NFTId_);
+        NFTContract_.safeTransferFrom(msg.sender, address(this), NFTId_);
 
         _vendors[msg.sender][productCount].available    = true;
     }
@@ -73,7 +72,8 @@ contract GameNFTMarketPlace is ERC721Holder
         _vendors[msg.sender][productID_].available = false;
 
         // transfer NFT from marketplace back to vendor.
-        NFTToken.safeTransferFrom(address(this), msg.sender, productID_);
+        IERC721     NFTContract    = _vendors[address(this)][productID_].NFTContract;
+        NFTContract.safeTransferFrom(address(this), msg.sender, productID_);
     }
 
     /**
@@ -99,11 +99,51 @@ contract GameNFTMarketPlace is ERC721Holder
         require(_currency.balanceOf(msg.sender) >= price, "Not enough ERC20 token to buy this NFT");
 
         // get token address & id.
-        IERC721     NFTToken    = _vendors[vendor_][productID_].NFTToken;
-        uint256     NFTId       = _vendors[vendor_][productID_].NFTId;
+        IERC721     NFTContract    = _vendors[vendor_][productID_].NFTContract;
+        uint256     NFTId          = _vendors[vendor_][productID_].NFTId;
 
         // finalize transfer.
-        NFTToken.safeTransferFrom(address(this), msg.sender, NFTId);
+        NFTContract.safeTransferFrom(address(this), msg.sender, NFTId);
         _currency.transferFrom(msg.sender, vendor_, price);
+    }
+
+    /**
+     * @notice  returns NFT contract address
+     *          vendor_          - vendor address.
+     *          productID_       - NFT id to return.
+     */
+    function getNFTContract(address vendor_, uint256 productID_) external view returns (IERC721)
+    {
+        return _vendors[vendor_][productID_].NFTContract;
+    }
+
+    /**
+     * @notice  returns NFT id in NFT contract.
+     *          vendor_          - vendor address.
+     *          productID_       - NFT id to return.
+     */
+    function getNFTId(address vendor_, uint256 productID_) external view returns (uint256)
+    {
+        return _vendors[vendor_][productID_].NFTId;
+    }
+
+    /**
+     * @notice  returns NFT price in marketplace.
+     *          vendor_          - vendor address.
+     *          productID_       - NFT id to return.
+     */
+    function getNFTPrice(address vendor_, uint256 productID_) external view returns (uint256)
+    {
+        return _vendors[vendor_][productID_].price;
+    }
+
+    /**
+     * @notice  returns NFT is NFT for sale.
+     *          vendor_          - vendor address.
+     *          productID_       - NFT id to return.
+     */
+    function getNFTAvailable(address vendor_, uint256 productID_) external view returns (bool)
+    {
+        return _vendors[vendor_][productID_].available;
     }
 }

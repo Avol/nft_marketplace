@@ -83,5 +83,4 @@ describe("Become a seller", function ()
     const marketOwnedTokens = (await NFTContract.balanceOf(MarketContract.address)).toNumber();
     expect(marketOwnedTokens).to.equal(0);
   });
-
 });
