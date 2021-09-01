@@ -65,7 +65,7 @@ contract NFTMarketPlace
      *          price_       - amount of ERC20 tokens required to purchase (single NFT).
      *          supply_      - total amount of same type of NFT's.
      */
-    function sellNFT(uint256 price_, uint32 supply_) external
+    function sellNFT(uint256 price_, uint256 supply_) external
     {
         _vendorProducts[msg.sender].products[_vendorProducts[msg.sender].productCount].price    = price_;
         _vendorProducts[msg.sender].products[_vendorProducts[msg.sender].productCount].supply   = supply_;
