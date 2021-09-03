@@ -233,41 +233,6 @@ describe("Test marketplace data (Pass 1)", function ()
 
 describe("Test Other Untested Functions", function ()
 {
-  it("Customer count", async function() {
-    const customerCount = (await MarketContract.getCustomerCount()).toNumber();
-    expect(customerCount).to.equal(1);
-  });
-
-  it("Vendor Count", async function() {
-    const customerCount = (await MarketContract.getVendorCount()).toNumber();
-    expect(customerCount).to.equal(1);
-  });
-
-
-  it("Customer Purchase Count", async function() {
-    const customerCount = (await MarketContract.getCustomerPurchaseCount(user0.address)).toNumber();
-    expect(customerCount).to.equal(1 + 2 + 6);
-  });
-
-  it("Vendor Product Count", async function() {
-    const customerCount = (await MarketContract.getVendorProductCount(deployer.address)).toNumber();
-    expect(customerCount).to.equal(3);
-  });
-
-  it("Vendor Product Data", async function() {
-    const product0 = (await MarketContract.getVendorProductData(deployer.address, 0));
-    const product1 = (await MarketContract.getVendorProductData(deployer.address, 1));
-    const product2 = (await MarketContract.getVendorProductData(deployer.address, 2));
-
-    expect(product0.supply.toNumber()).to.equal(3);
-    expect(product1.supply.toNumber()).to.equal(6);
-    expect(product2.supply.toNumber()).to.equal(0);
-
-    expect(product0.price.toNumber()).to.equal(100_00000);
-    expect(product1.price.toNumber()).to.equal(200_00000);
-    expect(product2.price.toNumber()).to.equal(50_00000);
-  });
-
   it("Currency", async function() {
     const currency = await MarketContract.getCurrency();
     expect(currency).to.equal(TokenContract.address);

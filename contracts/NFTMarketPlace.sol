@@ -43,12 +43,7 @@ contract NFTMarketPlace
     address     private immutable   _storeWallet;    // wallet where all the funds will go.
 
     mapping(address => CustomerData)        private _customerPurchases;     // purchases made by addresses.
-    mapping(uint256 => address)             private _customers;             // required to retrieve all customers without knowing all addresses.
-    uint256                                 private _customerCount;         // required to retrieve all customers without knowing all addresses.
-
     mapping(address => VendorData)          private _vendorProducts;        // products added by address.
-    mapping(uint256 => address)             private _vendors;               // required to retrieve all vendors without knowing all addresses.
-    uint256                                 private _vendorCount;           // required to retrieve all vendors without knowing all addresses.
 
     /**
      * @notice  token_                  - ERC20 token contract address. Marketplace currency.
@@ -69,16 +64,11 @@ contract NFTMarketPlace
     {
         _vendorProducts[msg.sender].products[_vendorProducts[msg.sender].productCount].price    = price_;
         _vendorProducts[msg.sender].products[_vendorProducts[msg.sender].productCount].supply   = supply_;
-
-        // add new buyer
-        if (_vendorProducts[msg.sender].productCount == 0)
-        {
-            _vendors[_vendorCount] = msg.sender;
-            _vendorCount++;
-        }
-
         _vendorProducts[msg.sender].productCount++;
+
+        emit sellNFTEvent(msg.sender, price_, supply_, _vendorProducts[msg.sender].productCount - 1);
     }
+    event sellNFTEvent(address indexed vendor, uint256 price, uint256 supply, uint256 nftID);
 
     /**
      *  @notice Removes an NFT from sale by setting a supply to 0.
@@ -88,6 +78,7 @@ contract NFTMarketPlace
     {
         _vendorProducts[msg.sender].products[NFTId_].supply = 0;
     }
+    event cancelNFTEvent(address indexed _vendor, uint32 indexed NFTId_);
 
     /**
      *  @notice
@@ -115,33 +106,12 @@ contract NFTMarketPlace
 
         _customerPurchases[msg.sender].purchases[_customerPurchases[msg.sender].purchaseCount].vendor         = vendor_;
         _customerPurchases[msg.sender].purchases[_customerPurchases[msg.sender].purchaseCount].NFTId          = NFTId_;
-
-        // add new buyer
-        if (_customerPurchases[msg.sender].purchaseCount == 0)
-        {
-            _customers[_customerCount] = msg.sender;
-            _customerCount++;
-        }
-
         _customerPurchases[msg.sender].purchaseCount++;
-    }
 
-
-    /**
-     *  @notice returns customer count.
-     */
-    function getCustomerCount() external view returns (uint256)
-    {
-        return _customerCount;
+        emit buyNFTEvent(msg.sender, vendor_, NFTId_, product.price);
     }
+    event buyNFTEvent(address indexed customer, address indexed vendor, uint32 NFTId, uint256 price);
 
-    /**
-     *  @notice returns customer purchase count.
-     */
-    function getCustomerPurchaseCount(address customer_) external view returns (uint256)
-    {
-        return _customerPurchases[customer_].purchaseCount;
-    }
 
     /**
      *  @notice returns customer purchase data.
@@ -152,21 +122,6 @@ contract NFTMarketPlace
                 _customerPurchases[customer_].purchases[purchaseID].NFTId);
     }
 
-    /**
-     *  @notice returns vendor count.
-     */
-    function getVendorCount() external view returns (uint256)
-    {
-        return _vendorCount;
-    }
-
-    /**
-     *  @notice returns vendor product count.
-     */
-    function getVendorProductCount(address vendor_) external view returns (uint256)
-    {
-        return _vendorProducts[vendor_].productCount;
-    }
 
     /**
      *  @notice returns vendor product data.
