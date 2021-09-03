@@ -130,6 +130,14 @@ contract NFTMarketPlace
         return _vendorProducts[vendor_].productCount;
     }
 
+    /**
+     *  @notice returns customer purchase count.
+     */
+    function getCustomerPurchaseCount(address customer_) external view returns (uint256 count)
+    {
+        return _customerPurchases[customer_].purchaseCount;
+    }
+
 
     /**
      *  @notice returns vendor product data.
